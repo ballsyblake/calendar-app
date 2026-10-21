@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>TeamCal</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <button id="menu-btn" class="icon-btn menu-btn" type="button" aria-label="Toggle sidebar">&#9776;</button>
+      <h1 id="cal-name" class="cal-name">TeamCal</h1>
+      <div class="nav">
+        <button id="today" class="btn" type="button" title="Today (.)">Today</button>
+        <button id="prev" class="icon-btn" type="button" aria-label="Previous" title="Previous (&larr;)">&#8249;</button>
+        <button id="next" class="icon-btn" type="button" aria-label="Next" title="Next (&rarr;)">&#8250;</button>
+        <h2 id="range-title" class="range-title"></h2>
+      </div>
+      <div id="view-buttons" class="segmented" role="group" aria-label="View"></div>
+      <div class="actions">
+        <button class="btn btn-primary add-event needs-add" type="button" title="New event (n)">+ Event</button>
+        <button id="share-btn" class="btn" type="button">Share</button>
+        <button id="settings-btn" class="icon-btn" type="button" aria-label="Settings" title="Settings" hidden>&#9881;</button>
+      </div>
+    </header>
+    <aside class="sidebar">
+      <button class="btn btn-primary btn-block add-event needs-add" type="button">+ New event</button>
+      <div id="mini" class="mini-wrap"></div>
+      <input id="search" class="input search" type="search" placeholder="Search events  ( / )" aria-label="Search events">
+      <div class="sub-head">
+        <h3>Sub-calendars</h3>
+        <button id="toggle-all" class="linkish" type="button">Hide all</button>
+      </div>
+      <ul id="sub-list" class="sub-list"></ul>
+      <div class="sidebar-foot">
+        <div id="me" class="me"></div>
+        <p class="shortcuts">Keys: <kbd>d</kbd> <kbd>w</kbd> <kbd>m</kbd> <kbd>y</kbd> <kbd>l</kbd> <kbd>t</kbd> views · <kbd>n</kbd> new · <kbd>/</kbd> search</p>
+      </div>
+    </aside>
+    <main id="view" class="view"></main>
+  </div>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

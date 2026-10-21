@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TeamCal · Shared calendars for teams</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="landing">
+  <main class="landing-main">
+    <section class="hero">
+      <h1>TeamCal</h1>
+      <p class="lead">One shared calendar for your team, with color-coded sub-calendars and shareable links — no accounts needed.</p>
+      <form id="create-form" class="create-card">
+        <label class="field">
+          <span class="field-label">Calendar name</span>
+          <input id="cal-name-input" class="input" name="name" required maxlength="100" placeholder="e.g. Marketing team">
+        </label>
+        <button class="btn btn-primary btn-block" type="submit">Create calendar</button>
+        <p id="create-error" class="form-error" role="alert" hidden></p>
+        <p class="hint">You get an administrator link. Bookmark it — it is the only key to manage the calendar.</p>
+      </form>
+      <div id="recent" class="recent" hidden>
+        <h2>Recently opened on this device</h2>
+        <ul id="recent-list"></ul>
+      </div>
+    </section>
+    <section class="features">
+      <div><h3>Sub-calendars</h3><p>Organize by team, project, room or person. Toggle them on and off, each in its own color.</p></div>
+      <div><h3>Six views</h3><p>Day, week, month, year, list and a timeline that lays sub-calendars side by side.</p></div>
+      <div><h3>Access links</h3><p>Give each group its own link: admin, modify, add-only or read-only, optionally limited to some sub-calendars.</p></div>
+      <div><h3>Repeating events</h3><p>Daily, weekly, monthly and yearly rules; edit one occurrence, the rest of a series, or all.</p></div>
+      <div><h3>Live and connected</h3><p>Changes appear instantly in every open tab. Subscribe via iCal in Google, Outlook or Apple Calendar.</p></div>
+      <div><h3>Comments and history</h3><p>Discuss events in comment threads; administrators see an activity log of every change.</p></div>
+    </section>
+  </main>
+  <script type="module" src="/js/landing.js"></script>
+</body>
+</html>
