@@ -1,6 +1,26 @@
+// Client for the TeamCal server. All URLs are relative so the app works under a sub-path.
 export class Api {
   constructor(key) {
-    this.base = `/api/c/${encodeURIComponent(key)}`;
+    this.key = key;
+    this.base = `api/c/${encodeURIComponent(key)}`;
+    this.isLocal = false;
+  }
+
+  static async createCalendar(data) {
+    const res = await fetch('api/calendars', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || 'Could not create the calendar');
+    return body;
+  }
+
+  // Live updates via server-sent events.
+  subscribe(onChange) {
+    if (!window.EventSource) return;
+    new EventSource(`${this.base}/stream`).onmessage = onChange;
   }
 
   async request(method, path, body) {
@@ -43,3 +63,28 @@ export class Api {
 
   activity() { return this.request('GET', '/activity'); }
 }
+
+// Uses the server when one answers; otherwise (static hosting such as GitHub Pages)
+// falls back to the in-browser backend.
+let modePromise = null;
+export function backendMode() {
+  modePromise ??= fetch('api/health', { headers: { Accept: 'application/json' } })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((body) => (body?.ok ? 'server' : 'local'))
+    .catch(() => 'local');
+  return modePromise;
+}
+
+export async function connect(key) {
+  if ((await backendMode()) === 'server') return new Api(key);
+  const { LocalApi, localBackend } = await import('./local.js');
+  return new LocalApi(await localBackend(), key);
+}
+
+export async function createCalendar(data) {
+  if ((await backendMode()) === 'server') return Api.createCalendar(data);
+  const { LocalApi } = await import('./local.js');
+  return LocalApi.createCalendar(data);
+}
+
+export const calendarUrl = (key) => new URL(`app.html?c=${encodeURIComponent(key)}`, location.href).href;

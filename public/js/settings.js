@@ -1,5 +1,6 @@
 import { h, clear, relativeTime, toast } from './dom.js';
 import { dialog, confirmDialog } from './editor.js';
+import { calendarUrl } from './api.js';
 
 const ROLE_LABELS = {
   admin: 'Administrator — full control',
@@ -9,8 +10,28 @@ const ROLE_LABELS = {
 };
 const VIEW_LABELS = { month: 'Month', week: 'Week', day: 'Day', list: 'List', timeline: 'Timeline', year: 'Year' };
 
-const linkUrl = (key) => `${location.origin}/c/${key}`;
-const feedUrl = (key, subIds) => `${location.origin}/feed/${key}.ics${subIds ? `?subcalendars=${subIds.join(',')}` : ''}`;
+const linkUrl = calendarUrl;
+const feedUrl = (key, subIds) => new URL(`feed/${encodeURIComponent(key)}.ics${subIds ? `?subcalendars=${subIds.join(',')}` : ''}`, location.href).href;
+const LOCAL_NOTE = 'This copy runs without a server: data lives in this browser only, so links open the calendar only on this device and browser.';
+
+function download(filename, data, type) {
+  const url = URL.createObjectURL(new Blob([data], { type }));
+  const a = h('a', { href: url, download: filename });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Subscription URL with the server; a one-off .ics download without one.
+function feedControl(app, subIds) {
+  if (!app.api.isLocal) return copyRow(feedUrl(app.key, subIds));
+  return h('div', {}, h('button', {
+    type: 'button',
+    class: 'btn',
+    onclick: async () => download(`${app.calendar.name}.ics`, await app.api.feed(subIds), 'text/calendar'),
+  }, 'Download .ics'));
+}
 
 async function copy(text) {
   try {
@@ -32,9 +53,12 @@ export function openShare(app) {
   const body = h('div', { class: 'dialog-body' },
     h('p', {}, `You are using the link "${app.me.name}" (${ROLE_LABELS[app.me.role]}).`),
     h('h3', {}, 'This link'), copyRow(linkUrl(app.key)),
-    h('h3', {}, 'Subscribe in Google Calendar, Outlook or Apple Calendar'),
-    h('p', { class: 'muted' }, 'Add this iCal feed URL as a subscription. It updates automatically.'),
-    copyRow(feedUrl(app.key)));
+    app.api.isLocal ? h('p', { class: 'muted' }, LOCAL_NOTE) : null,
+    h('h3', {}, app.api.isLocal ? 'Export to Google Calendar, Outlook or Apple Calendar' : 'Subscribe in Google Calendar, Outlook or Apple Calendar'),
+    h('p', { class: 'muted' }, app.api.isLocal
+      ? 'Download an iCal file and import it. It is a snapshot and does not update.'
+      : 'Add this iCal feed URL as a subscription. It updates automatically.'),
+    feedControl(app));
   const dlg = dialog('settings-dialog', [
     h('div', { class: 'dialog-header' }, h('h2', {}, 'Share & subscribe'),
       h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Close', onclick: () => dlg.close() }, '×')),
@@ -97,6 +121,30 @@ function generalTab(app, panel) {
     }
   });
   panel.append(form);
+  if (app.api.isLocal) panel.append(backupSection(app));
+}
+
+function backupSection(app) {
+  const file = h('input', { type: 'file', accept: '.sqlite,application/octet-stream', hidden: true });
+  file.addEventListener('change', async () => {
+    const [f] = file.files;
+    if (!f) return;
+    if (!(await confirmDialog('Restore backup?', 'All calendars stored in this browser will be replaced by the backup.', 'Restore'))) return;
+    try {
+      await app.api.importBytes(new Uint8Array(await f.arrayBuffer()));
+      toast('Backup restored');
+      location.reload();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
+  });
+  return h('section', { class: 'stack' },
+    h('h3', {}, 'Backup'),
+    h('p', { class: 'muted' }, `${LOCAL_NOTE} Clearing site data deletes it, so download a backup now and then.`),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn', onclick: () => download('teamcal-backup.sqlite', app.api.exportBytes(), 'application/octet-stream') }, 'Download backup'),
+      h('button', { type: 'button', class: 'btn', onclick: () => file.click() }, 'Restore backup…'),
+      file));
 }
 
 function subcalendarsTab(app, panel, rerender) {
@@ -166,6 +214,7 @@ function subScopePicker(app, selected) {
 async function linksTab(app, panel, rerender) {
   panel.append(h('p', { class: 'muted' },
     'Share the calendar without accounts: each link grants its own permission level and can be limited to some sub-calendars. Anyone with a link has its access — delete a link to revoke it.'));
+  if (app.api.isLocal) panel.append(h('p', { class: 'local-note' }, LOCAL_NOTE));
   let links;
   try {
     links = await app.api.links();
@@ -236,10 +285,12 @@ async function linksTab(app, panel, rerender) {
 
 function feedsTab(app, panel) {
   panel.append(
-    h('p', { class: 'muted' }, 'Subscribe to these URLs from Google Calendar, Outlook or Apple Calendar. Feeds are read-only and follow the access of the link they are built from.'),
-    h('h3', {}, 'All sub-calendars'), copyRow(feedUrl(app.key)));
+    h('p', { class: 'muted' }, app.api.isLocal
+      ? 'Download iCal files to import into Google Calendar, Outlook or Apple Calendar. Live subscription URLs need the TeamCal server.'
+      : 'Subscribe to these URLs from Google Calendar, Outlook or Apple Calendar. Feeds are read-only and follow the access of the link they are built from.'),
+    h('h3', {}, 'All sub-calendars'), feedControl(app));
   for (const s of app.subcalendars) {
-    panel.append(h('h3', {}, h('span', { class: 'swatch', style: { background: s.color } }), s.name), copyRow(feedUrl(app.key, [s.id])));
+    panel.append(h('h3', {}, h('span', { class: 'swatch', style: { background: s.color } }), s.name), feedControl(app, [s.id]));
   }
 }
 

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TeamCal · Shared calendars for teams</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/app.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="landing">
   <main class="landing-main">
@@ -20,6 +20,7 @@
         <button class="btn btn-primary btn-block" type="submit">Create calendar</button>
         <p id="create-error" class="form-error" role="alert" hidden></p>
         <p class="hint">You get an administrator link. Bookmark it — it is the only key to manage the calendar.</p>
+        <p id="local-note" class="hint local-note" hidden>This copy runs without a server: calendars are stored in this browser only, and links work only on this device. Use Settings &rarr; General to back up your data.</p>
       </form>
       <div id="recent" class="recent" hidden>
         <h2>Recently opened on this device</h2>
@@ -35,6 +36,6 @@
       <div><h3>Comments and history</h3><p>Discuss events in comment threads; administrators see an activity log of every change.</p></div>
     </section>
   </main>
-  <script type="module" src="/js/landing.js"></script>
+  <script type="module" src="js/landing.js"></script>
 </body>
 </html>

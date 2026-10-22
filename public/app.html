@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <title>TeamCal</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/css/app.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
   <div class="app">
@@ -37,11 +37,12 @@
       <ul id="sub-list" class="sub-list"></ul>
       <div class="sidebar-foot">
         <div id="me" class="me"></div>
+        <p class="local-badge badge" title="No server: data is stored in this browser only">Browser-only storage</p>
         <p class="shortcuts">Keys: <kbd>d</kbd> <kbd>w</kbd> <kbd>m</kbd> <kbd>y</kbd> <kbd>l</kbd> <kbd>t</kbd> views · <kbd>n</kbd> new · <kbd>/</kbd> search</p>
       </div>
     </aside>
     <main id="view" class="view"></main>
   </div>
-  <script type="module" src="/js/app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

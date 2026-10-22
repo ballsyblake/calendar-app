@@ -345,6 +345,11 @@ kbd { font: 11px ui-monospace, monospace; padding: 0 4px; border: 1px solid var(
 .copy-row .input { flex: 1; font-family: ui-monospace, monospace; font-size: 12px; }
 .activity { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
 
+/* ---- local (serverless) mode ---- */
+.local-note { background: var(--today); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; color: var(--text); }
+.local-badge { display: none; }
+.local-mode .local-badge { display: inline-block; margin-left: 6px; background: var(--today); color: var(--muted); }
+
 /* ---- toasts / errors ---- */
 .toasts { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; }
 .toast { background: #1d2330; color: #fff; padding: 10px 16px; border-radius: var(--radius); box-shadow: var(--shadow); transition: opacity 0.4s; }

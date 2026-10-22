@@ -1,6 +1,6 @@
 // iCalendar (RFC 5545) feed generation.
-import { addDaysToKey, parseDateKey, weekdayOfKey, zonedParts, zonedToUtc } from '../public/js/shared/time.js';
-import { nthWeekdayOf, eventStartKey } from '../public/js/shared/recurrence.js';
+import { addDaysToKey, parseDateKey, weekdayOfKey, zonedParts, zonedToUtc } from './time.js';
+import { nthWeekdayOf, eventStartKey } from './recurrence.js';
 
 const DAY_CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 const pad = (n, w = 2) => String(n).padStart(w, '0');
@@ -12,10 +12,11 @@ export function escapeText(value) {
 // Fold lines longer than 75 octets without splitting multi-byte characters.
 export function foldLine(line) {
   const out = [];
+  const encoder = new TextEncoder();
   let current = '';
   let bytes = 0;
   for (const ch of line) {
-    const size = Buffer.byteLength(ch);
+    const size = encoder.encode(ch).length;
     const limit = out.length ? 74 : 75;
     if (bytes + size > limit) {
       out.push(current);

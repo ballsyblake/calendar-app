@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDb, Store, HttpError, requireRole } from './db.js';
-import { buildFeed } from './ical.js';
+import { buildFeed } from '../public/js/shared/ical.js';
 
 const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -39,11 +39,13 @@ export function createApp({ dbFile = ':memory:' } = {}) {
     next();
   });
   app.use(express.static(publicDir));
-  app.get('/c/:key', (req, res) => res.sendFile(path.join(publicDir, 'app.html')));
+  // Links from before the app moved to app.html?c=<key>.
+  app.get('/c/:key', (req, res) => res.redirect(301, `/app.html?c=${encodeURIComponent(req.params.key)}`));
+  app.get('/api/health', (req, res) => res.json({ ok: true }));
 
   app.post('/api/calendars', (req, res) => {
     const { adminKey } = store.createCalendar(req.body ?? {});
-    res.status(201).json({ adminKey, url: `/c/${adminKey}` });
+    res.status(201).json({ adminKey, url: `/app.html?c=${adminKey}` });
   });
 
   const api = express.Router({ mergeParams: true });

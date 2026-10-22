@@ -33,7 +33,26 @@ Environment variables:
 | `PORT`    | `3000`             | HTTP port            |
 | `DB_FILE` | `data/teamcal.db`  | SQLite database path |
 
-Open the start page, create a calendar and **bookmark the admin link you're given**. It's the only key to the calendar.
+Open the start page, create a calendar (calendar links look like `/app.html?c=<key>`) and **bookmark the admin link you're given**. It's the only key to the calendar.
+
+## Static hosting (GitHub Pages)
+
+The app also runs with no server. When `api/health` doesn't respond, the browser runs the same data layer (`public/js/shared/store.js`) on SQLite compiled to WebAssembly ([sql.js](https://github.com/sql-js/sql.js)) and stores the database in IndexedDB.
+
+```sh
+npm run build     # writes the static site to dist/
+npm run preview   # builds, then serves dist/ locally
+```
+
+`.github/workflows/pages.yml` runs the tests, builds `dist/` and deploys it to GitHub Pages on every push.
+
+Static mode has these limits compared with running the server:
+
+- **Data stays in one browser.** Nothing is shared between people or devices, so sharing links only open the calendar in the browser that created it. Settings → General has backup download and restore.
+- **No live iCal feeds.** Settings → iCal feeds offers one-off `.ics` downloads instead.
+- **Live updates only reach other tabs in the same browser.** They use a `BroadcastChannel`, and writes take a Web Lock so tabs never overwrite each other.
+
+For a calendar a team actually shares, deploy the Node server, for example to Render, Fly.io or a VPS.
 
 ## Architecture
 
@@ -41,15 +60,16 @@ Open the start page, create a calendar and **bookmark the admin link you're give
 server/
   index.js      entry point
   app.js        Express routes, permission checks, SSE hub, iCal endpoint
-  db.js         SQLite schema, validation, data access (Store)
-  ical.js       RFC 5545 feed generation
+  db.js         opens the node:sqlite database for the shared Store
 public/
   index.html    start page (create calendar, recently opened)
   app.html      calendar shell
-  js/shared/    date, time-zone and recurrence logic used by the browser and the server
+  js/shared/    data layer (store.js), iCal, date, time-zone and recurrence logic used by the browser and the server
+  js/local.js   in-browser backend (sql.js + IndexedDB) used when no server is reachable
   js/views/     month, week/day time grid, list, timeline, year
   js/editor.js  event dialog, recurrence scope prompts, comments
   js/settings.js admin settings dialog
+scripts/        static build for GitHub Pages
 test/           node:test suites
 ```
 

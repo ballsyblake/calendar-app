@@ -1,4 +1,4 @@
-import { Api } from './api.js';
+import { connect } from './api.js';
 import { h, clear, addMonths, startOfDay, startOfMonth, toast, storage, saveStorage, DAY } from './dom.js';
 import { localDateKey, localDateFromKey, isDateKey } from './shared/time.js';
 import { expandEvent } from './shared/recurrence.js';
@@ -14,11 +14,11 @@ const VIEW_LABELS = { day: 'Day', week: 'Week', month: 'Month', year: 'Year', li
 const RANK = { read: 0, add: 1, modify: 2, admin: 3 };
 
 const $ = (sel) => document.querySelector(sel);
-const key = decodeURIComponent(location.pathname.split('/')[2] || '');
+const key = new URLSearchParams(location.search).get('c') || '';
 
 const app = {
   key,
-  api: new Api(key),
+  api: null,
   calendar: null,
   me: null,
   subcalendars: [],
@@ -251,16 +251,14 @@ function step(dir) {
 // ---- live updates ----
 
 function connectStream() {
-  if (!window.EventSource) return;
-  const source = new EventSource(`/api/c/${encodeURIComponent(key)}/stream`);
   let timer;
-  source.onmessage = () => {
+  app.api.subscribe(() => {
     clearTimeout(timer);
     timer = setTimeout(() => {
       if (!document.querySelector('dialog[open]')) app.reload();
       else app.refresh();
     }, 300);
-  };
+  });
 }
 
 // ---- boot ----
@@ -343,11 +341,13 @@ function clearSearch() {
 
 async function boot() {
   if (!key) {
-    location.href = '/';
+    location.href = 'index.html';
     return;
   }
   bindChrome();
   try {
+    app.api = await connect(key);
+    document.body.classList.toggle('local-mode', app.api.isLocal);
     const info = await app.api.info();
     Object.assign(app, { calendar: info.calendar, me: info.me, subcalendars: info.subcalendars });
     app.subMap = new Map(info.subcalendars.map((s) => [s.id, s]));
@@ -355,7 +355,7 @@ async function boot() {
     clear($('#view')).append(h('div', { class: 'fatal' },
       h('h2', {}, err.status === 404 ? 'Calendar not found' : 'Could not load the calendar'),
       h('p', {}, err.status === 404 ? 'This link is invalid or has been revoked. Ask the calendar administrator for a new link.' : err.message),
-      h('a', { href: '/', class: 'btn' }, 'Go to start page')));
+      h('a', { href: 'index.html', class: 'btn' }, 'Go to start page')));
     document.body.classList.add('failed');
     return;
   }
